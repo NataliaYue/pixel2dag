@@ -1,0 +1,18 @@
+[build-system]                         # con qué herramienta se instala el paquete
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pixel2dag"                     # el nombre que usarás en: import pixel2dag
+version = "0.1.0"
+description = "Simulador causal de retinografías para estudiar atajos en clasificadores médicos"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "matplotlib", "scikit-learn"]   # lo que necesita el paquete
+
+[project.optional-dependencies]        # extras que solo instalas si los pides
+dev = ["pytest", "jupyter", "networkx"]   # para desarrollar: tests y notebooks
+app = ["gradio"]                          # para la demo web (etapa 6)
+
+[tool.setuptools.packages.find]
+where = ["src"]                        # "busca el paquete dentro de src/"
