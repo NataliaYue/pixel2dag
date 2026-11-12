@@ -7,7 +7,6 @@ MUNDO_SIN_CONFUSION = {"base": -1.0, "coef_hospital_A": 0.0}
 MUNDO_INVERTIDO = {"base": 0.5, "coef_hospital_A": -1.5}
 
 
-# ---------- notebook 01 ----------
 def dado(semilla, variable):
     return random.Random(f"{semilla}-{variable}")
 

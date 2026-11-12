@@ -1,4 +1,10 @@
-# ---------- notebook 02 ----------
+"""Renderizador: el nodo `imagen` del DAG."""
+import math
+
+import numpy as np
+
+from pixel2dag.scm import dado
+
 IMG = 64
 C = (IMG - 1) / 2
 R = IMG * 0.46
@@ -7,11 +13,16 @@ D = np.sqrt((YY - C) ** 2 + (XX - C) ** 2)
 MASCARA = D <= R
 factor = 1 - 0.35 * (D / R) ** 2
 
-
 def pintar_mancha(img, cy, cx, radio, color, alpha=1.0):
-    w = alpha * np.exp(-((YY - cy) ** 2 + (XX - cx) ** 2) / (2 * radio**2))
-    return (1 - w[..., None]) * img + w[..., None] * np.array(color)
-
+    m = int(math.ceil(3 * radio)) + 1
+    y0, y1 = max(0, int(cy) - m), min(IMG, int(cy) + m + 1)
+    x0, x1 = max(0, int(cx) - m), min(IMG, int(cx) + m + 1)
+    img = img.copy()
+    if y0 >= y1 or x0 >= x1:
+        return img
+    w = alpha * np.exp(-((YY[y0:y1, x0:x1] - cy) ** 2 + (XX[y0:y1, x0:x1] - cx) ** 2) / (2 * radio ** 2))
+    img[y0:y1, x0:x1] = (1 - w[..., None]) * img[y0:y1, x0:x1] + w[..., None] * np.array(color)
+    return img
 
 def dibujar_vasos(img, semilla, ny, nx):
     rng = dado(semilla, "vasos")
@@ -29,7 +40,6 @@ def dibujar_vasos(img, semilla, ny, nx):
             grosor = max(0.5, grosor * 0.99)
     return img
 
-
 def fondo_de_ojo(semilla):
     lado = dado(semilla, "lado").choice([-1, 1])
     ny, nx = 32, C + lado * 16
@@ -40,12 +50,10 @@ def fondo_de_ojo(semilla):
     img = dibujar_vasos(img, semilla, ny, nx)
     return img
 
-
 def posicion_en_disco(rng):
     distancia = R * 0.9 * math.sqrt(rng.random())
     angulo = rng.uniform(0, 2 * math.pi)
     return C + distancia * math.sin(angulo), C + distancia * math.cos(angulo)
-
 
 def dibujar_microaneurismas(img, semilla, n_ma):
     rng = dado(semilla, "pos_ma")
@@ -54,7 +62,6 @@ def dibujar_microaneurismas(img, semilla, n_ma):
         img = pintar_mancha(img, y, x, 0.8, [0.35, 0, 0], 0.95)
     return img
 
-
 def dibujar_exudados(img, semilla, n_ex):
     rng = dado(semilla, "pos_ex")
     for i in range(n_ex):
@@ -62,7 +69,6 @@ def dibujar_exudados(img, semilla, n_ex):
         radio = rng.uniform(0.9, 1.8)
         img = pintar_mancha(img, y, x, radio, [1.0, 0.92, 0.35], 0.9)
     return img
-
 
 def efecto_escaner(img, hospital, semilla):
     rng_np = np.random.default_rng(dado(semilla, "ruido").randrange(2**32))
@@ -73,7 +79,6 @@ def efecto_escaner(img, hospital, semilla):
         img = img * 0.8 * factor[..., None]
         img = img + rng_np.normal(0, 0.05, img.shape)
     return np.clip(img, 0, 1)
-
 
 def renderizar(paciente):
     s = paciente["semilla"]
